@@ -22,9 +22,8 @@ fun Navigation() {
                 }
             )
         ) { entry ->
-            // Access the argument from the NavBackStackEntry
             val receivedName = entry.arguments?.getString("name")
-            FunctionalitiesActivity(name = receivedName)
+            FunctionalitiesScreen(name = receivedName) // Correctly calling the Composable
         }
     }
 }

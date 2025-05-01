@@ -100,7 +100,7 @@ fun SurfaceContent(padding: PaddingValues, database: AppDatabase, navController:
                             feedbackMessage = "Login successful! (Simulated)"
                             showDialog = true
                             // **NAVIGATION ON SUCCESSFUL LOGIN:**
-                            navController.navigate(Screen.Functionscreen.withArgs(user.username)) // Navigate to Functionscreen
+                            //navController.navigate(Screen.Functionscreen.withArgs(user.username)) // Navigate to Functionscreen
                         } else {
                             feedbackMessage = "Invalid email or password"
                             showDialog = true
@@ -165,6 +165,8 @@ fun SurfaceContent(padding: PaddingValues, database: AppDatabase, navController:
                             email = "";
                             username = "";
                             password = "";
+                            // **NAVIGATION ON SUCCESSFUL LOGIN:**
+                            navController.navigate(Screen.Functionscreen.withArgs("AURAMAXING")) // Navigate to Functionscreen
                         }
                     }) {
                         Text("OK")

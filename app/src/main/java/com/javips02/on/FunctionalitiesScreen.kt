@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
-fun FunctionalitiesActivity(name: String?) {
+fun FunctionalitiesScreen(name: String?) { // Renamed and removed Activity inheritance
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
