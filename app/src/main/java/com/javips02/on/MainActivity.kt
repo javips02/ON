@@ -21,7 +21,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import androidx.navigation.compose.rememberNavController
 import com.javips02.on.persistence.AppDatabase
@@ -39,12 +41,7 @@ class MainActivity() : ComponentActivity() {
         setContent {
             val navController = rememberNavController() // Get the NavController here
             ONTheme {
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = { TopAppBar(title = { Text("Login / Register") }) }
-                ) { padding ->
-                    SurfaceContent(padding = padding, database = database, navController = navController)
-                }
+                NavigationWrapper(database = database) // Use a wrapper to manage Navigation and database
             }
         }
     }
@@ -56,7 +53,7 @@ class MainActivity() : ComponentActivity() {
 }
 
 @Composable
-fun SurfaceContent(padding: PaddingValues, database: AppDatabase, navController: NavController) {
+fun SurfaceContent(padding: PaddingValues = PaddingValues(0.dp), database: AppDatabase, navController: NavHostController) { // Receive NavHostController
     var showLogin by rememberSaveable { mutableStateOf(false) }
     var showRegister by rememberSaveable { mutableStateOf(false) }
     var email by rememberSaveable { mutableStateOf("") }
@@ -65,6 +62,7 @@ fun SurfaceContent(padding: PaddingValues, database: AppDatabase, navController:
     var feedbackMessage by rememberSaveable { mutableStateOf("") }
     var showDialog by rememberSaveable { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+    var loggedInUsername by rememberSaveable { mutableStateOf<String?>(null) } // State for logged-in username
 
     // You'll need access to the NavController here.
     // One way to do this is to pass it as a parameter to SurfaceContent.
@@ -77,6 +75,19 @@ fun SurfaceContent(padding: PaddingValues, database: AppDatabase, navController:
             .wrapContentSize(Alignment.Center),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Fixed welcome message
+        Text(
+            text = "Welcome to ON!",
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 8.dp) // Reduced bottom padding
+        )
+        Text(
+            text = "Please login or register to the application",
+            style = MaterialTheme.typography.bodySmall, // Smaller text style
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 16.dp) // Add some bottom padding before buttons
+        )
         if (!showLogin && !showRegister) {
             Button(
                 onClick = { showLogin = true },
@@ -98,9 +109,8 @@ fun SurfaceContent(padding: PaddingValues, database: AppDatabase, navController:
                         val user = database.userDao().getByUsername(email).firstOrNull()
                         if (user != null && user.password == password) { // NEVER compare plain passwords.  Use hashing.
                             feedbackMessage = "Login successful! (Simulated)"
+                            loggedInUsername = user.username
                             showDialog = true
-                            // **NAVIGATION ON SUCCESSFUL LOGIN:**
-                            //navController.navigate(Screen.Functionscreen.withArgs(user.username)) // Navigate to Functionscreen
                         } else {
                             feedbackMessage = "Invalid email or password"
                             showDialog = true
@@ -166,7 +176,8 @@ fun SurfaceContent(padding: PaddingValues, database: AppDatabase, navController:
                             username = "";
                             password = "";
                             // **NAVIGATION ON SUCCESSFUL LOGIN:**
-                            navController.navigate(Screen.Functionscreen.withArgs("AURAMAXING")) // Navigate to Functionscreen
+                            navController.navigate(Screen.Functionscreen.withArgs(loggedInUsername ?: "ErrorUsername")) // Navigate with stored username
+                            loggedInUsername = null // Reset the stored username
                         }
                     }) {
                         Text("OK")
