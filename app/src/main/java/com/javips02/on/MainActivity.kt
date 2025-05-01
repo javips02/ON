@@ -1,6 +1,7 @@
 package com.javips02.on
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -15,32 +16,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.javips02.on.ui.theme.ONTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.navigation.NavController
 import kotlinx.coroutines.launch
-import androidx.lifecycle.lifecycleScope
+import androidx.navigation.compose.rememberNavController
 import com.javips02.on.persistence.AppDatabase
 import com.javips02.on.persistence.user.User
 import kotlinx.coroutines.flow.firstOrNull
 
-class MainActivity : ComponentActivity() {
+class MainActivity() : ComponentActivity() {
     private lateinit var database: AppDatabase
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         database = AppDatabase.getInstance(applicationContext)
+        Log.d("DatabaseDebug", "MainActivity Database Instance: $database")
         setContent {
+            val navController = rememberNavController() // Get the NavController here
             ONTheme {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = { TopAppBar(title = { Text("Login / Register") }) }
                 ) { padding ->
-                    SurfaceContent(padding = padding, database = database)
+                    SurfaceContent(padding = padding, database = database, navController = navController)
                 }
             }
         }
@@ -53,7 +56,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun SurfaceContent(padding: PaddingValues, database: AppDatabase) {
+fun SurfaceContent(padding: PaddingValues, database: AppDatabase, navController: NavController) {
     var showLogin by rememberSaveable { mutableStateOf(false) }
     var showRegister by rememberSaveable { mutableStateOf(false) }
     var email by rememberSaveable { mutableStateOf("") }
@@ -62,6 +65,10 @@ fun SurfaceContent(padding: PaddingValues, database: AppDatabase) {
     var feedbackMessage by rememberSaveable { mutableStateOf("") }
     var showDialog by rememberSaveable { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+
+    // You'll need access to the NavController here.
+    // One way to do this is to pass it as a parameter to SurfaceContent.
+    // val navController = rememberNavController() // Get the NavController here if MainActivity doesn't pass it.
 
     Column(
         modifier = Modifier
@@ -92,6 +99,8 @@ fun SurfaceContent(padding: PaddingValues, database: AppDatabase) {
                         if (user != null && user.password == password) { // NEVER compare plain passwords.  Use hashing.
                             feedbackMessage = "Login successful! (Simulated)"
                             showDialog = true
+                            // **NAVIGATION ON SUCCESSFUL LOGIN:**
+                            navController.navigate(Screen.Functionscreen.withArgs(user.username)) // Navigate to Functionscreen
                         } else {
                             feedbackMessage = "Invalid email or password"
                             showDialog = true
@@ -106,7 +115,7 @@ fun SurfaceContent(padding: PaddingValues, database: AppDatabase) {
                 }
             }
             Button(onClick = {
-                showLogin = false; email = ""; password = ""
+                showLogin = false; email = ""; password = "";
             }, modifier = Modifier.padding(8.dp)) {
                 Text("Cancel")
             }
@@ -225,7 +234,8 @@ fun RegisterForm(email: String, username: String, password: String, onEmailChang
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
+    val navController = rememberNavController() // Get the NavController here
     ONTheme {
-        SurfaceContent(padding = PaddingValues(0.dp), database = AppDatabase.getInstance(context = TODO()))
+        SurfaceContent(padding = PaddingValues(0.dp), database = AppDatabase.getInstance(context = TODO()), navController = navController)
     }
 }
